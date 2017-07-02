@@ -1,0 +1,20 @@
+{
+
+	"name": "test",
+	"version": "1",
+
+	"permissions": [
+		"tabs",
+		"storage"
+	],
+
+	"browser_action": {
+  		"default_title": "Test",
+  		"default_popup": "popup.html"
+	},
+
+	"manifest_version": 2,
+
+	"content_security_policy": "script-src 'self' https://ajax.googleapis.com; object-src 'self'"
+
+}
