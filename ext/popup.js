@@ -8,29 +8,22 @@
 	}
 */
 
-_model = {};
-_handler = {
-	set : function(target, key, value){
+function Model(target){
+	let _handler = { set : function(target, key, value){
 		// Observe when array is being appended to
+		console.log("model updated")
 		target[key] = value;
-		console.log(`Key ${key} to Value ${value}`)
 		return true;
 		// update DOM
+		}
 	}
+
+	let r = new Proxy(target, _handler);
+
+	r.add = (id, title) => { target[id] = {"title" : title} };
+
+	return r;
 }
-
-function Model(target, handler){
-	target.add = (id, title) => { target[id] = {"title" : title} };
-	return new Proxy(target, handler);
-}
-
-model = new Model(_model, _handler);
-
-// model = new function(){
-// 	let r = new Proxy(target, handler);
-// 	r.add = id =>{ model[id] = {"title" : title} };
-// 	return r;
-// }
 
 document.addEventListener("DOMContentLoaded", function(){
 	chrome.tabs.query({active : true,currentWindow : true },
@@ -44,20 +37,15 @@ document.addEventListener("DOMContentLoaded", function(){
 
 			chrome.storage.sync.get("model", function(data){
 
-				// If this is the first time saving to storage
-				// then `data["model"]` will return an empty
-				// object. In this case `model` will still
-				// refer to the data strcuture previously
-				// defined.
-				//
-				// This is a really weird pattern huh ._.
-				console.log(data.model);
+				// If storage is empty, `get` returns 'undefined'
+				// so instantiate `model` with empty object.
 
-				//                                                vvvvvvvvvvvvvvvvvvvvvvvvv
-				// Is not recieving the right type of objects
-				// to create a Model object with.
-				// TO FIX
-				if (!jQuery.isEmptyObject(data["model"])) model = new Model(data["model"]);
+				// If storage is not empty, `get` returns just
+				// object with only information. No functions
+				// or proxy.
+
+				if (data["model"] == undefined) model = new Model({});
+				else model = new Model(data['model'])
 
 				model.add(id, title);
 
