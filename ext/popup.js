@@ -39,6 +39,7 @@ function Model(target){
 		id_list = target.id_list;
 		delete target["id_list"];
 		delete target["add"];
+		delete target["remove"];
 		target = $.map(target, function(value, index) {
 			return [value];
 		});
@@ -47,7 +48,9 @@ function Model(target){
 	//r.add = (id, title) => { target[id] = {"title" : title} };
 
 	let r = new Proxy(target, _handler);
+
 	r.id_list = id_list == undefined ? [] : id_list;
+
 	r.add = function(id, title){
 		entry = {
 			id : id ,
@@ -55,65 +58,86 @@ function Model(target){
 		};
 
 		// If there exists an object with the same id,
-		// return and do nothing.
+		// return and do nothing. Prevent duplicates.
 		if ( ! ($.inArray(id, this.id_list) == -1) ) return;
-
 		this.id_list.push(id);
 		target.push(entry);
 	};
 
+	r.remove = function(id){
+		let index = $.inArray(id, this.id_list);
+		id_list.splice(index, 1);
+		model.splice(index, 1);
+	}
+
 	return r;
+}
+
+// Having this as a global variable so ViewFactory can 
+// access this to remove entries when the 'remove' button
+// is clicked.
+var model;
+
+class Controller {
+	static add(){
+		let add_video = function(tabs){
+			// Using "id" causes scope problems; `id` in the
+			// callback becomes undefined. Hence the variable
+			// is named "id_"
+
+			let url = tabs[0].url;
+			if (url.match(/youtube.com/) == null) return;
+			let id_ = url.match(/[^=]*$/)[0];
+			let title = tabs[0].title;
+
+			chrome.storage.sync.get("model", function(data){
+				let id = id_;
+
+				// If storage is empty, `get` returns 'undefined'
+				// so instantiate `model` with empty object.
+
+				// If storage is not empty, `get` returns just
+				// object with only information. No functions
+				// or proxy.
+
+				if (data["model"] == undefined) model = new Model([]);
+				else model = new Model(data['model'])
+
+				model.add(id, title);
+
+				chrome.storage.sync.set({"model" : model});
+
+				// update dom
+				for (var i = 0; i < model.length; i++){
+					id = model[i].id;
+					title = model[i].title;
+					if (title) ViewFactory.createEntry(id, title);
+				}
+
+			});
+		}
+
+		chrome.tabs.query({active : true,currentWindow : true }, add_video);
+	}
+
+	static remove(row, id){
+		$(row).click(function(event){
+			$(event.target).parent().parent().remove();
+			model.remove(id);
+			chrome.storage.sync.set({"model" : model});
+		});
+	}
 }
 
 // Controller
 document.addEventListener("DOMContentLoaded", function(){
-
-	chrome.tabs.query({active : true,currentWindow : true },
-
-	function(tabs) {
-
-		// Using "id" causes scope problems; `id` in the
-		// callback becomes undefined. Hence the variable
-		// is named "id_"
-
-		let url = tabs[0].url;
-		if (url.match(/youtube.com/) == null) return;
-		let id_ = url.match(/[^=]*$/)[0];
-		let title = tabs[0].title;
-
-		chrome.storage.sync.get("model", function(data){
-			let id = id_;
-
-			// If storage is empty, `get` returns 'undefined'
-			// so instantiate `model` with empty object.
-
-			// If storage is not empty, `get` returns just
-			// object with only information. No functions
-			// or proxy.
-
-			if (data["model"] == undefined) model = new Model([]);
-			else model = new Model(data['model'])
-
-			model.add(id, title);
-
-			chrome.storage.sync.set({"model" : model});
-
-			// update dom
-			for (var i = 0; i < model.length; i++){
-				id = model[i].id;
-				title = model[i].title;
-				if (title) ViewFactory.createEntry(id, title);
-			}
-
-		});
-
-	});
-
+	Controller.add();
 });
+
 
 class ViewFactory{
 
-	static createEntry(id, title, callback){
+	static createEntry(id, title){
 
 		let $image = $("<img>", {
 			"src" : `https:/\/img.youtube.com/vi/${id}/sddefault.jpg`,
@@ -121,15 +145,24 @@ class ViewFactory{
 		});
 		let $image_td = $("<td>").append($image);
 
-		let $title = $("<p>", {"class" : "title"}).append(title);
-		let $title_td = $("<td>").append($title);
+		let $title = $("<a>", {"class" : "title", "href" : `https:/\/youtube.com/watch?v${id}`}).append(title);
+		let $remove = $("<a>", {"class" : "remove"}).append("Remove");
+		let $title_td = $("<td>").append($title).append($remove);
 
-		let $row = $("<tr>").append($image_td).append($title_td);
+		let $row = $("<tr>", {"vid-id" : id}).append($image_td).append($title_td);
 
 		$("tbody").append($row);
 
-		if(callback) callback();
+		this._remove($remove, id);
 
+	}
+
+	// Takes the jQuery object for the 'remove' button
+	// and adds the listener to remove the  appropriate
+	// <tr> tag.
+	static _remove(row, id){
+		//event.target.parentNode
+		Controller.remove(row, id);
 	}
 
 }
