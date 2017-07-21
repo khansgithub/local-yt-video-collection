@@ -145,7 +145,7 @@ class ViewFactory{
 		});
 		let $image_td = $("<td>").append($image);
 
-		let $title = $("<a>", {"class" : "title", "href" : `https:/\/youtube.com/watch?v${id}`}).append(title);
+		let $title = $("<a>", {"class" : "title", "href" : `https:\/\/www.youtube.com/watch?v=${id}`}).append(title);
 		let $remove = $("<a>", {"class" : "remove"}).append("Remove");
 		let $title_td = $("<td>").append($title).append($remove);
 
