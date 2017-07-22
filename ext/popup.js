@@ -85,8 +85,13 @@ class Controller {
 			// callback becomes undefined. Hence the variable
 			// is named "id_"
 
+			// Controls whether an entry will be pushed. If the
+			// the user is not on a YT video page then nothing
+			// will be added.
+			let add = true;
+
 			let url = tabs[0].url;
-			if (url.match(/youtube.com/) == null) return;
+			if (url.match(/youtube\.com\/watch\?v=/) == null) add = false;;
 			let id_ = url.match(/[^=]*$/)[0];
 			let title = tabs[0].title;
 
@@ -103,9 +108,10 @@ class Controller {
 				if (data["model"] == undefined) model = new Model([]);
 				else model = new Model(data['model'])
 
-				model.add(id, title);
-
-				chrome.storage.sync.set({"model" : model});
+				if ( add ) {
+					model.add(id, title);
+					chrome.storage.sync.set({"model" : model});
+				}				
 
 				// update dom
 				for (var i = 0; i < model.length; i++){
