@@ -91,7 +91,8 @@ class Controller {
 			let add = true;
 
 			let url = tabs[0].url;
-			if (url.match(/youtube\.com\/watch\?v=/) == null) add = false;;
+			var youtube_regex = /youtube\.com\/watch\?(&)?.*v=/;
+			if (url.match(youtube_regex) == null) add = false;;
 			let id_ = url.match(/[^=]*$/)[0];
 			let title = tabs[0].title;
 
