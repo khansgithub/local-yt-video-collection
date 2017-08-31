@@ -79,7 +79,11 @@ function Model(target){
 var model;
 
 class Controller {
+
 	static add(){
+		var title = "";
+		var id = "";
+
 		let add_video = function(tabs){
 			// Using "id" causes scope problems; `id` in the
 			// callback becomes undefined. Hence the variable
@@ -91,23 +95,29 @@ class Controller {
 			let add = true;
 
 			let url = tabs[0].url;
-			var youtube_regex = /youtube\.com\/watch\?(&)?.*v=/;
-			var youtube_id_regex = [
+			let youtube_regex = /youtube\.com\/watch\?(&)?.*v=/;
+			let youtube_id_regex = [
 				/v=[^&]+/, // return v=ID&
 				/[^v=].+[^&]/ // ID
 				]; 
-			if (url.match(youtube_regex) == null) add = false;
 
-			console.log(youtube_id_regex);
-			let temp_ = url.match(youtube_id_regex[0])[0];
-			console.log(temp_);
-			let id_ = temp_.match(youtube_id_regex[1])[0];
-			console.log(id_);
+			if (url.match(youtube_regex) == null) {
+				add = false;
+			} else {
+				let temp_ = url.match(youtube_id_regex[0])[0];
+				id = temp_.match(youtube_id_regex[1])[0];
+				title = tabs[0].title;
+			}
 
-			let title = tabs[0].title;
+			console.log(add);
 
 			chrome.storage.sync.get("model", function(data){
-				let id = id_;
+				// try { var id = id_; } catch (e) {
+				// 	var id;
+				// 	var title;
+				// }
+
+				console.log(title, id);
 
 				// If storage is empty, `get` returns 'undefined'
 				// so instantiate `model` with empty object.
