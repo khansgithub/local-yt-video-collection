@@ -93,12 +93,16 @@ class Controller {
 			let url = tabs[0].url;
 			var youtube_regex = /youtube\.com\/watch\?(&)?.*v=/;
 			var youtube_id_regex = [
-				/v=(.*)&/, // return v=ID&
+				/v=[^&]+/, // return v=ID&
 				/[^v=].+[^&]/ // ID
 				]; 
 			if (url.match(youtube_regex) == null) add = false;
 
-			let id_ = (url.match(youtube_id_regex[0])[0]).match(youtube_id_regex[1])[0];
+			console.log(youtube_id_regex);
+			let temp_ = url.match(youtube_id_regex[0])[0];
+			console.log(temp_);
+			let id_ = temp_.match(youtube_id_regex[1])[0];
+			console.log(id_);
 
 			let title = tabs[0].title;
 
