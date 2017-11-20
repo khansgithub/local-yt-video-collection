@@ -1,26 +1,34 @@
-// https://stackoverflow.com/questions/2068344/how-do-i-get-a-youtube-video-thumbnail-from-the-youtube-api
-// https://stackoverflow.com/questions/15005500/loading-cross-domain-endpoint-with-jquery-ajax
-// https://gist.github.com/FLamparski/1122e08edeef19ff0913
-// https://stackoverflow.com/questions/6857468/converting-a-js-object-to-an-array
-/*
-	{
-		<ID> : { title : "title" },
-		<ID> : { title : "title" }
-	}
+// Having this as a global variable so ViewFactory can 
+// access this to remove entries when the 'remove' button
+// is clicked.
+//
+// Ideally this would be a class level variable in `Contorller`
+// but I don't know how to do that.
+var model;
 
-	[
-		{ <ID> : { title : <TITLE> } },
-		{ <ID> : { title : <TITLE> } }
-	]
+// untested
+this.import_ = function(i_data){
+	// [
+	// 		[ID, TITLE],
+	// 		[ID, TITLE]
+	// ]
+	model = new Model([]);
+	for ( i = 0; i < i_data.length-1; i++)
+		model.add(i_data[0][0], i_data[0][1]);
+	chrome.storage.local.set({"model" : model});
+}
 
-	[
-		{
-			id : <ID>,
-			title : <TITLE>
-		}
-	]
-*/
+document.addEventListener("DOMContentLoaded", function(){
+	Controller.add();
+	$("#export").click(function(event){
+		var fml = [];
+		for(i = 0; i<model.length-1; i++)
+			fml.push([model[i]['id'], model[i]['title']]);
+		console.log(fml);
+	});
+});
 
+// Data structure
 function Model(target){
 
 	let _handler = { set : function(target, key, value){
@@ -33,7 +41,7 @@ function Model(target){
 
 	// Data structure is a ist with objects, however Proxy
 	// converts it into an object when using
-	// `chrome.storage.sync.set`. So `Model` will convert
+	// `chrome.storage.local.set`. So `Model` will convert
 	// the object into a list by mapping through each object.
 	if (typeof target == "object"){
 		id_list = target.id_list;
@@ -71,97 +79,10 @@ function Model(target){
 	}
 
 	return r;
+
 }
 
-// Having this as a global variable so ViewFactory can 
-// access this to remove entries when the 'remove' button
-// is clicked.
-var model;
-
-class Controller {
-
-	static add(){
-		var title = "";
-		var id = "";
-
-		let add_video = function(tabs){
-			// Using "id" causes scope problems; `id` in the
-			// callback becomes undefined. Hence the variable
-			// is named "id_"
-
-			// Controls whether an entry will be pushed. If the
-			// the user is not on a YT video page then nothing
-			// will be added.
-			let add = true;
-
-			let url = tabs[0].url;
-			let youtube_regex = /youtube\.com\/watch\?(&)?.*v=/;
-			let youtube_id_regex = [
-				/v=[^&]+/, // return v=ID&
-				/[^v=].+[^&]/ // ID
-				]; 
-
-			if (url.match(youtube_regex) == null) {
-				add = false;
-			} else {
-				let temp_ = url.match(youtube_id_regex[0])[0];
-				id = temp_.match(youtube_id_regex[1])[0];
-				title = tabs[0].title;
-			}
-
-			console.log(add);
-
-			chrome.storage.sync.get("model", function(data){
-				// try { var id = id_; } catch (e) {
-				// 	var id;
-				// 	var title;
-				// }
-
-				console.log(title, id);
-
-				// If storage is empty, `get` returns 'undefined'
-				// so instantiate `model` with empty object.
-
-				// If storage is not empty, `get` returns just
-				// object with only information. No functions
-				// or proxy.
-
-				if (data["model"] == undefined) model = new Model([]);
-				else model = new Model(data['model'])
-
-				if ( add ) {
-					model.add(id, title);
-					chrome.storage.sync.set({"model" : model});
-				}				
-
-				// update dom
-				for (var i = 0; i < model.length; i++){
-					id = model[i].id;
-					title = model[i].title;
-					if (title) ViewFactory.createEntry(id, title);
-				}
-
-			});
-		}
-
-		chrome.tabs.query({active : true,currentWindow : true }, add_video);
-	}
-
-	static remove(row, id){
-		$(row).click(function(event){
-			$(event.target).parent().parent().remove();
-			model.remove(id);
-			chrome.storage.sync.set({"model" : model});
-		});
-	}
-}
-
-// Controller
-document.addEventListener("DOMContentLoaded", function(){
-	Controller.add();
-});
-
-
+// Produces HTML
 class ViewFactory{
 
 	static createEntry(id, title){
@@ -194,14 +115,90 @@ class ViewFactory{
 
 }
 
-/*
-<tr>
-	<td style="">
-		<img src="https://img.youtube.com/vi/e0gM12u9dmc/sddefault.jpg" style="width: 150px;" class="image">
-	</td>
+// Controller
+class Controller {
 
-	<td style="width: 300px;">
-		<p class="title" style=""> Resuscitated Hope/Lisa Komine [Music Box] (Anime "GOSICK" ED) </p>
-	</td>    
-</tr>
-*/
+	constructor(){
+		this.test = "test value - UNCHANGED";
+		console.log("this inside constructor");
+		console.log(this);
+	}
+
+	static add(){
+		var title = "";
+		var id = "";
+
+		let add_video = function(tabs){
+			// Using "id" causes scope problems; `id` in the
+			// callback becomes undefined. Hence the variable
+			// is named "id_"
+
+			// Controls whether an entry will be pushed. If the
+			// the user is not on a YT video page then nothing
+			// will be added.
+			let add = true;
+
+			let url = tabs[0].url;
+			let youtube_regex = /youtube\.com\/watch\?(&)?.*v=/;
+			let youtube_id_regex = [
+				/v=[^&]+/, // return v=ID&
+				/[^v=].+[^&]/ // ID
+				]; 
+
+			if (url.match(youtube_regex) == null) {
+				add = false;
+			} else {
+				let temp_ = url.match(youtube_id_regex[0])[0];
+				id = temp_.match(youtube_id_regex[1])[0];
+				title = tabs[0].title;
+			}
+
+			// Check if ADD flag
+			// console.log(add);
+
+			chrome.storage.local.get("model", function(data){
+
+				// If storage is empty, `get` returns 'undefined'
+				// so instantiate `model` with empty object.
+
+				// If storage is not empty, `get` returns just
+				// object with only information. No functions
+				// or proxy.
+
+				if (data["model"] == undefined) model = new Model([]);
+				else model = new Model(data['model'])
+
+				if ( add ) {
+					model.add(id, title);
+					chrome.storage.local.set({"model" : model});
+				}				
+
+				// update dom
+				for (var i = 0; i < model.length; i++){
+					id = model[i].id;
+					title = model[i].title;
+					if (title) ViewFactory.createEntry(id, title);
+				}
+
+			});
+		}
+
+		chrome.tabs.query({active : true,currentWindow : true }, add_video);
+	}
+
+	static remove(row, id){
+		$(row).click(function(event){
+			$(event.target).parent().parent().remove();
+			model.remove(id);
+			chrome.storage.local.set({"model" : model});
+			//console.log(this.test);
+			//this.test = "test value - MODIFIED"
+			//console.log(this.test);
+			console.log("this inside remove");
+			console.log(this);
+		});
+	}
+
+}
+
+
