@@ -174,7 +174,13 @@ class Controller {
 				}				
 
 				// update dom
-				for (var i = 0; i < model.length; i++){
+				// the array is in chronological order, so the
+				// latest video added is that the bottom but
+				// that's a little inconvenient. arranging the array
+				// to work in the reversed order is a pain as i just
+				// have discovered, so instead videos can just be
+				// rendered in the reverse order.
+				for (var i = model.length-1; i > -1; i--){
 					id = model[i].id;
 					title = model[i].title;
 					if (title) ViewFactory.createEntry(id, title);
@@ -196,6 +202,7 @@ class Controller {
 			//console.log(this.test);
 			console.log("this inside remove");
 			console.log(this);
+			console.log(id)
 		});
 	}
 
