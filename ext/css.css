@@ -1,0 +1,34 @@
+img.image{
+	height: 112.5px;
+	width: 150px;
+}
+
+a.title{
+	width: 300px;
+	display: block;
+}
+
+table{
+	border-spacing: 0;
+}
+
+td{
+	padding-left:2px;
+	padding-right:2px;
+}
+
+tr:nth-child(even){
+	background-color: #f2f2f2;
+}
+
+tr:nth-child(odd){
+	background-color: #ebebeb;
+}
+
+.img-on{
+	visibility: visible;
+}
+
+.img-off{
+	visibility: hidden;
+}

@@ -1,22 +1,21 @@
 <html>
 	<head>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+		<script src="model.js"></script>
+		<script src="view.js"></script>
+		<script src="controller.js"></script>
+		<script src="util.js"></script>
 		<script src="popup.js"></script>
 	</head>
 
-	<style type="text/css">
-		img.image{
-			width: 150px;
-		}
-		a.title{
-			width: 300px;
-			display: block;
-		}
-	</style>
+	<link rel="stylesheet" href="css.css">
 
 	<body>
+	<p id="export"> export </p>
 		<table>
 			<tbody>
+				<input type="checkbox" id="toggle_images"/><label>Image</label>
 			</tbody>
 		</table>
 	</body>
