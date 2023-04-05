@@ -28,7 +28,7 @@ function toggleImages(){
 			entry = entries[i];
 			if(this.img_show){
 				vid_id = $(entry).parent().parent().attr("vid-id");
-				url = `https:/\/img.youtube.com/vi/${vid_id}/sddefault.jpg`;
+				url = `https:/\/img.youtube.com/vi/${vid_id}/default.jpg`;
 				$(entry).removeClass("img-off");
 				$(entry).addClass("img-on");
 				$(entry).attr("src", url);

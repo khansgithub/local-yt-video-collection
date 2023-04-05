@@ -32,3 +32,8 @@ tr:nth-child(odd){
 .img-off{
 	visibility: hidden;
 }
+
+#image_checkbox{
+	box-sizing: border-box;
+	width: auto;
+}

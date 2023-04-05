@@ -5,7 +5,7 @@ class View{
 
 		let $image = $("<img>", {
 			//"src" : `https:/\/img.youtube.com/vi/${id}/sddefault.jpg`,
-			"image_url" : `https:/\/img.youtube.com/vi/${id}/sddefault.jpg`,
+			"image_url" : `https:/\/img.youtube.com/vi/${id}/default.jpg`,
 			"class" : "image",
 			"alt" : ""
 		});
